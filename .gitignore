@@ -1,0 +1,11 @@
+# Python 运行产物
+__pycache__/
+*.py[cod]
+
+# 虚拟环境
+.venv/
+
+# IDE
+.idea/
+
+out/
