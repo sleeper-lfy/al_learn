@@ -19,7 +19,7 @@ import sys
 import requests
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
-MODEL = "modelscope.cn/Qwen/Qwen3-1.7B-GGUF"
+MODEL = "qwen3:1.7b"
 TIMEOUT = 120
 
 # 模型能选择的“行动”白名单，防止模型输出未知 action 时程序崩溃或静默失败

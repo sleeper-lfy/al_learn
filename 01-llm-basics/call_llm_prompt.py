@@ -10,7 +10,7 @@
 import requests
 
 URL = "http://localhost:11434/api/chat"
-MODEL = "modelscope.cn/Qwen/Qwen3-1.7B-GGUF"
+MODEL = "qwen3:1.7b"
 TIMEOUT = 120
 
 

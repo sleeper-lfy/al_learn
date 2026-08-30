@@ -10,7 +10,7 @@ import sys
 
 # ========== 配置区：换模型、换提示词时改这里就行 ==========
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "modelscope.cn/Qwen/Qwen3-1.7B-GGUF"  # 模型名（全名）
+MODEL = "qwen3:1.7b"  # 模型名（全名）
 PROMPT = "天空为什么是蓝色的？"
 TIMEOUT = 60  # 超时秒数，避免服务没响应时程序一直卡住
 

@@ -17,7 +17,7 @@ import requests
 from tools import TOOLS, execute_tool
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
-MODEL = "modelscope.cn/Qwen/Qwen3-1.7B-GGUF"
+MODEL = "qwen3:1.7b"
 TIMEOUT = 120
 MAX_STEPS = 8  # 循环上限，防止模型无限调用工具
 

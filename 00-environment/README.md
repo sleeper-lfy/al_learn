@@ -5,7 +5,7 @@
 ## 目标
 
 - [x] Ollama 服务可用（本机 `:11434`）
-- [x] 模型可加载（`modelscope.cn/Qwen/Qwen3-1.7B-GGUF`）
+- [x] 模型可加载（`qwen3:1.7b`）
 - [x] 最小 HTTP 闭环：发 JSON、收 JSON、拿到 `response`
 
 ## 环境与实测数据
@@ -14,7 +14,7 @@
 
 ```text
 qwen3.5-agent:latest
-modelscope.cn/Qwen/Qwen3-1.7B-GGUF:latest
+qwen3:1.7b
 modelscope.cn/nomic-ai/nomic-embed-text-v1.5-GGUF:latest   # embedding，RAG 备用
 ```
 
@@ -41,7 +41,7 @@ import sys
 
 # ========== 配置区：换模型、换提示词时改这里就行 ==========
 OLLAMA_URL = "http://localhost:11434/api/generate"
-MODEL = "modelscope.cn/Qwen/Qwen3-1.7B-GGUF"  # 模型名（全名）
+MODEL = "qwen3:1.7b"  # 模型名（全名）
 PROMPT = "天空为什么是蓝色的？"
 TIMEOUT = 60  # 超时秒数，避免服务没响应时程序一直卡住
 
