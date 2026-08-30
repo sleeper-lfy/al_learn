@@ -8,30 +8,31 @@ import argparse
 import json
 import pathlib
 import sys
+import requests
+from .tools import *
 
 # 确保 04-rag 根目录在 sys.path，支持 `python agent/agent.py` 直接运行
 PROJECT_ROOT = str(pathlib.Path(__file__).resolve().parents[1])
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-import requests
 
-from tools import TOOLS, execute_tool
 
 OLLAMA_URL = "http://localhost:11434/api/chat"
 MODEL = "qwen3:1.7b"
 TIMEOUT = 180
 MAX_STEPS = 8
 
-SYSTEM_PROMPT = """你是一个影视检索 Agent，负责理解用户需求并决定是否使用影视检索工具。
+SYSTEM_PROMPT = """你是一个检索 Agent，负责理解用户需求并决定是否使用检索工具。
 
 决策规则：
 1. 用户问题涉及影视信息（电影、电视剧、演员、导演、类型、标签、剧情等）时，
    必须调用 search_movies，content 填用户真正想查询的自然语言条件。
+2.用户问题涉及中国法律是必须调用search_laws，content 填用户真正想查询的自然语言条件。
 2. 只是闲聊、问候、或与影视知识库无关时，直接回答，不要调用工具。
 3. 查询条件模糊但可以检索时，优先调用工具做模糊检索，不要反复询问用户。
 4. 不要自行添加用户没有提供的条件，不要猜测片名/演员/导演/年份等。
-5. 检索是 search_movies 工具内部的事，不要在回答里解释检索过程。
+5. 检索是 search_movies和search_laws 工具内部的事，不要在回答里解释检索过程。
 
 最终回答：
 - 调用工具后，根据工具返回结果回答，不要编造工具没有返回的信息；

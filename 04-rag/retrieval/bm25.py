@@ -6,7 +6,7 @@ import sqlite3
 
 import jieba
 
-from ..entity.models import Document
+from entity.models import Document
 
 logger = logging.getLogger(__name__)
 

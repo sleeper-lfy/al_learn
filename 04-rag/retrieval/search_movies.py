@@ -9,21 +9,25 @@ RAG 的核心认知：单一检索方式不够稳——
 
 import json
 
-from ..ingestion.movie_store import MoviesStore
-from ..retrieval.bm25 import BM25Searcher
-from ..retrieval.chroma_store import ChromaStore
-from ..retrieval.embedder import Embedder
+import pathlib
+
+from ingestion.movie_store import MoviesStore
+from retrieval.bm25 import BM25Searcher
+from retrieval.chroma_store import ChromaStore
+from retrieval.embedder import Embedder
+
 
 RRF_K = 60  # RRF 常数，控制融合时排名的权重
 CONTENT_LIMIT = 300  # 每条结果 page_content 最多给模型多少字（控制上下文体量）
-
+BASE_DIR = pathlib.Path(__file__).resolve().parents[1]
+CHROMA_DIR = str(BASE_DIR / "data" / "chroma")
 
 class MovieSearcher:
     """电影混合检索：向量召回 + BM25 召回 + RRF 融合 + 回表取详情。"""
 
-    def __init__(self) -> None:
+    def __init__(self, persist_dir: str = CHROMA_DIR) -> None:
         self.embedder = Embedder()
-        self.chroma = ChromaStore()
+        self.chroma = ChromaStore(persist_dir = persist_dir)
         self.bm25 = BM25Searcher()
         self.store = MoviesStore()
 

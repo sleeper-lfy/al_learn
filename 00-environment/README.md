@@ -15,7 +15,7 @@
 ```text
 qwen3.5-agent:latest
 qwen3:1.7b
-modelscope.cn/nomic-ai/nomic-embed-text-v1.5-GGUF:latest   # embedding，RAG 备用
+nomic-embed-text-v1.5:latest   # embedding，RAG 备用
 ```
 
 几个值得记录的观察（都是实际跑出来的数字）：

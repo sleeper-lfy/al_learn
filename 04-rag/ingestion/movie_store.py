@@ -4,11 +4,11 @@ import json
 import os
 import pathlib
 import sqlite3
-
+import time
 import jieba
 
-from ..entity.models import Document
-from ..ingestion.nfo_parser import NfoParser
+from entity.models import Document
+from ingestion.nfo_parser import NfoParser
 
 BASE_DIR = pathlib.Path(__file__).resolve().parents[1]  # 04-rag 根目录
 DB_PATH = str(BASE_DIR / "data" / "movies.db")
@@ -29,6 +29,19 @@ class MoviesStore:
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS movies (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nfo_path TEXT,
+                title TEXT,
+                year TEXT,
+                page_content TEXT,
+                metadata_json TEXT,
+                file_mtime REAL
+            )
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS laws (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nfo_path TEXT,
                 title TEXT,
@@ -114,6 +127,24 @@ class MoviesStore:
             metadata=json.loads(row[3]),
         )
 
+    def sync_laws_data(self, docs: list[Document], path:str, title:str) -> None :
+        cursor = self.conn.cursor()
+        for doc in docs:
+            cursor.execute(
+                """
+                INSERT INTO laws (nfo_path, title, page_content, metadata_json, file_mtime)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    path,
+                    title,
+                    doc.page_content,
+                    json.dumps(doc.metadata, ensure_ascii=False),
+                    time.time(),
+                ),
+            )
+        self.conn.commit()
+
     # ---------------- NFO 目录同步 ----------------
 
     def sync_nfo_directory(self, directory: str) -> dict[str, int]:
@@ -184,3 +215,7 @@ class MoviesStore:
         self.conn.commit()
         self._rebuild_fts()
         return {"added": added, "updated": updated, "deleted": deleted}
+
+
+if __name__ == '__main__':
+    MoviesStore()._init_tables()

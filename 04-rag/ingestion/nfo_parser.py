@@ -3,7 +3,7 @@
 import os
 import xml.etree.ElementTree as ET
 
-from ..entity.models import Document
+from entity.models import Document
 
 
 class NfoParser:

@@ -4,9 +4,9 @@ import pathlib
 
 import chromadb
 
-from ..entity.models import Document
-from ..ingestion.movie_store import MoviesStore
-from ..retrieval.embedder import Embedder
+from entity.models import Document
+from ingestion.movie_store import MoviesStore
+from retrieval.embedder import Embedder
 
 BASE_DIR = pathlib.Path(__file__).resolve().parents[1]  # 04-rag 根目录
 CHROMA_DIR = str(BASE_DIR / "data" / "chroma")

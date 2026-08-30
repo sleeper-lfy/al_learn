@@ -4,7 +4,7 @@
 Agent 只依赖 TOOLS（有哪些工具）和 execute_tool（执行工具）。
 """
 
-from ..retrieval.search_movies import MovieSearcher
+from retrieval.search_movies import MovieSearcher
 
 TOOLS = [
     {
