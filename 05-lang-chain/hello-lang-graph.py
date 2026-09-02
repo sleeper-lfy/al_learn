@@ -17,7 +17,7 @@ from langchain.chat_models import init_chat_model
 from langchain.tools import tool, ToolRuntime
 from langgraph.checkpoint.memory import InMemorySaver
 
-MODEL = "ollama:modelscope.cn/Qwen/Qwen3-1.7B-GGUF"
+MODEL = "ollama:qwen3:1.7b"
 
 SYSTEM_PROMPT = """你是一位擅长用双关语的天气预报员。
 决策规则：
