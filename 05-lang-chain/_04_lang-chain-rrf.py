@@ -36,10 +36,8 @@ def reciprocal_rank(results, expected_articles):
 
     return 0.0
 
-
-if __name__ == "__main__":
+def hybrid_search(query):
     reranker = TransformersReranker("E:/AI/models/bge-reranker-v2-m3")
-    query = "法律解释权属于谁？"
     # test()
     # 读取PDF
     docs = PyPDFLoader('data/中华人民共和国立法法.pdf').load()
@@ -52,7 +50,7 @@ if __name__ == "__main__":
     # 向量化
     vector_store = FAISSVectorStore(dimension=len(embedding_model.embed(chunks[0].page_content)))
     vector_store.add_documents(documents=chunks, embedding_model=embedding_model)
-    vector_retriever = Retriever(embedding_model=embedding_model, vector_store=vector_store, top_k=58)
+    vector_retriever = Retriever(embedding_model=embedding_model, vector_store=vector_store, top_k=20)
 
     keyword_retriever = KeywordRetriever(chunks)
     hybrid = HybridRetriever(
@@ -63,11 +61,14 @@ if __name__ == "__main__":
     results = hybrid.retrieve_key(
         query="法律解释权属于谁？",
         top_k=20,
-        candidate_k=58
+        candidate_k=20
     )
-
-
     print("========== Retriever ==========")
-
     for i, result in enumerate(results, 1):
         print(i, result['document'].metadata, result["score"], result['document'].page_content)
+    return
+
+if __name__ == "__main__":
+    hybrid_search("法律解释权属于谁？")
+
+

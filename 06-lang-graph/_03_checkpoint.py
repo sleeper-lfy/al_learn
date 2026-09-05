@@ -10,7 +10,9 @@ class State(TypedDict):
 
 
 # 2. 定义 Node
-def increment(state: State):
+def increment(state: State, config):
+    print("--- 1. 节点接收到的 config ---")
+    print(f"Config Metadata: {config.get('metadata')}")
     return {"count": state["count"] + 1}
 
 
