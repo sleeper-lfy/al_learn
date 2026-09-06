@@ -63,37 +63,25 @@ def load_law_articles() -> list[dict]:
 
 embedding_model = OllamaEmbeddings(model="nomic-embed-text-v1.5")
 
-vector_store = Chroma(
-    collection_name="lifafa",
-    embedding_function=embedding_model,
-    persist_directory=str(CHROMA_DIR),
-)
+vector_store = Chroma(collection_name="lifafa", embedding_function=embedding_model, persist_directory=str(CHROMA_DIR), )
 
 stored = vector_store.get(include=["documents", "metadatas"])
 
 if stored["ids"]:
-    ARTICLES = [
-        {"article": meta["article"], "content": doc}
-        for meta, doc in zip(stored["metadatas"], stored["documents"])
-    ]
+    ARTICLES = [{"article": meta["article"], "content": doc} for meta, doc in
+        zip(stored["metadatas"], stored["documents"])]
     print(f"从 Chroma 加载 {len(ARTICLES)} 条法条（跳过 PDF 解析和向量化）")
 else:
     print("首次运行：正在解析 PDF 并写入 Chroma ...")
     ARTICLES = load_law_articles()
     vector_store.add_documents(
-        documents=[
-            Document(
-                page_content=f"{a['article']}{a['content']}",
-                metadata={"article": a["article"]},
-            )
-            for a in ARTICLES
-        ],
-        ids=[a["article"] for a in ARTICLES],
-    )
+        documents=[Document(page_content=f"{a['article']}{a['content']}", metadata={"article": a["article"]}, ) for a in
+            ARTICLES], ids=[a["article"] for a in ARTICLES], )
     print(f"已写入 {len(ARTICLES)} 条法条到 Chroma")
 
 # article → 原文，方便后面按法条号取内容
 ARTICLE_MAP = {a["article"]: a["content"] for a in ARTICLES}
+
 
 # ============================================================
 # 4. Vector Search
@@ -105,10 +93,7 @@ ARTICLE_MAP = {a["article"]: a["content"] for a in ARTICLES}
 
 def vector_search(query: str, top_n: int = 10) -> list[dict]:
     results = vector_store.similarity_search_with_score(query, k=top_n)
-    return [
-        {"article": doc.metadata["article"], "score": float(dist)}
-        for doc, dist in results
-    ]
+    return [{"article": doc.metadata["article"], "score": float(dist)} for doc, dist in results]
 
 
 # ============================================================
@@ -126,11 +111,7 @@ BM25 = BM25Okapi(CORPUS_TOKENS)
 def bm25_search(query: str, top_n: int = 10) -> list[dict]:
     scores = BM25.get_scores(list(jieba.cut(query)))
     ranked = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_n]
-    return [
-        {"article": BM25_ARTICLES[i], "score": float(scores[i])}
-        for i in ranked
-        if scores[i] > 0
-    ]
+    return [{"article": BM25_ARTICLES[i], "score": float(scores[i])} for i in ranked if scores[i] > 0]
 
 
 # ============================================================
@@ -187,29 +168,24 @@ def hybrid_search(query: str, top_k: int = 5, candidate_n: int = 10) -> list[dic
 
 
 @tool
-def search_law(query: str) -> str:
+def search_law(query: str, top_k: int = 5) -> str:
     """
     查询中华人民共和国现行有效的法律法规和法律条文。
-
+    参数：
+    query: 要查询的法律问题或关键词。
+    top_k: 返回的相关法条数量。
     适用于：
     1. 查询具体法律条文
     2. 查询法律条款内容
-    3. 根据法律名称和条文编号检索法律
-    4. 查询法律规定
-
-    不适用于：
-    1. 电影查询
-    2. 新闻查询
-    3. 普通闲聊
+    3. 查询法律规定
     """
-    print(f"\n========== Tool Call: search_law ==========")
-    print(f"query: {query}")
-
-    results = hybrid_search(query)
-
-    output = "\n\n".join(f"【{r['article']}】{r['content']}" for r in results)
-    print(f"\n返回 Top {len(results)} 条给 LLM")
-    return output
+    print("\n========== Tool Call ==========")
+    print("query:", query)
+    print("top_k:", top_k)
+    if top_k < 3:
+        raise ValueError("top_k 必须大于等于 3")
+    results = hybrid_search(query, top_k=top_k)
+    return "\n\n".join(f"【{r['article']}】{r['content']}" for r in results)
 
 
 # ============================================================
@@ -223,12 +199,10 @@ def search_law(query: str) -> str:
 #   - 普通问题   → 直接回答
 # ============================================================
 
-SYSTEM_PROMPT = (
-    "你是法律条文查询助手。你自己的记忆不可靠、可能过时，"
-    "禁止凭记忆回答任何法律内容。"
-    "只要问题涉及法律（包括原则、条文、程序），"
-    "必须先调用 search_law 工具检索条文，再依据检索结果回答。"
-)
+SYSTEM_PROMPT = ("你是法律条文查询助手。你自己的记忆不可靠、可能过时，"
+                 "禁止凭记忆回答任何法律内容。"
+                 "只要问题涉及法律（包括原则、条文、程序），"
+                 "必须先调用 search_law 工具检索条文，再依据检索结果回答。")
 
 llm_with_tools = llm.bind_tools([search_law])
 
@@ -256,7 +230,8 @@ def route(state: MessagesState):
 builder = StateGraph(MessagesState)
 
 builder.add_node("agent", agent)
-builder.add_node("tools", ToolNode([search_law]))
+#handle_tool_errors=True 让Agent能处理错误
+builder.add_node("tools", ToolNode([search_law], handle_tool_errors=True))
 
 builder.add_edge(START, "agent")
 builder.add_conditional_edges("agent", route, {"tools": "tools", "end": END})
@@ -274,11 +249,9 @@ def ask(question: str):
     print(f"# User: {question}")
     print("#" * 60)
 
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": question},
-    ]
-    result = graph.invoke({"messages": messages})
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": question}, ]
+    #最大迭代次数recursion_limit
+    result = graph.invoke({"messages": messages}, config={"recursion_limit": 10})
 
     # qwen3 会输出 <think> 思考过程，展示时去掉
     answer = re.sub(r"<think>.*?</think>", "", result["messages"][-1].content, flags=re.S).strip()
@@ -289,7 +262,8 @@ def ask(question: str):
 
 if __name__ == "__main__":
     # 法律问题：LLM 判断需要查法律 → Tool Call → 混合检索 → 最终回答
-    ask("我国立法应当遵循什么原则？")
+    while True:
+        ask("我国立法应当遵循什么原则？")
 
     # 普通问题：LLM 判断不需要查法律 → 直接回答
     # ask("你好，用一句话介绍一下你自己")
